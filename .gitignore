@@ -1,4 +1,4 @@
-uploads/**
+/uploads/**
 HELP.md
 .gradle
 build/
