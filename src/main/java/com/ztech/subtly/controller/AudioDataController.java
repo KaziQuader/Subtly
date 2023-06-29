@@ -20,15 +20,12 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import com.ztech.subtly.model.AudioData;
 import com.ztech.subtly.utils.StorageService;
 
-import jakarta.servlet.http.HttpServletRequest;
-
 import com.ztech.subtly.controller.repository.AudioDataRepository;
 
 @RestController
 @RequestMapping(path = "/api/v1/audio")
 public class AudioDataController {
     @Autowired
-    private HttpServletRequest request;
     private AudioDataRepository audioDataRepository;
     private StorageService storageService;
 
