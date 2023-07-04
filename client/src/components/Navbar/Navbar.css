@@ -1,5 +1,11 @@
+* {
+  /* box-sizing: border-box;
+  margin: 0;
+  padding: 0; */
+  font-family: "Oswald", sans-serif;
+}
 .nav {
-  background: #171717;
+  background: #fff;
   height: 80px;
   display: flex;
   justify-content: center;
@@ -21,14 +27,14 @@
 }
 
 .logo {
-  color: #fff;
+  color: #171717;
   justify-content: flex-start;
   cursor: pointer;
   font-size: 1.5rem;
   display: flex;
   align-items: center;
   margin-left: 50px;
-  font-family: bold;
+  font-family: "Oswald" sans-serif;
   text-decoration: none;
 }
 
@@ -49,13 +55,14 @@
 }
 
 .nav-link {
-  color: #fff;
+  color: #171717;
   display: flex;
   align-items: center;
   text-decoration: none;
   padding: 0 1rem;
   height: 100%;
   cursor: pointer;
+  font-family: "Oswald" sans-serif;
 
   /* &.active {
     border-bottom: 3px solid #01bf71;

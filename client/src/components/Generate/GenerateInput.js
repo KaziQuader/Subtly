@@ -10,9 +10,10 @@ const GenerateInput = (props) => {
   };
 
   return (
-    <div className="formInput">
-      <label>{label}</label>
+    <div className="generateInput">
+      <label className="generate-label">{label}</label>
       <input
+        className="generate-input"
         {...inputProps}
         onChange={onChange}
         onBlur={handleFocus}
@@ -21,7 +22,7 @@ const GenerateInput = (props) => {
         }
         focused={focused.toString()}
       />
-      <span>{errorMessage}</span>
+      <span className="generate-span">{errorMessage}</span>
     </div>
   );
 };

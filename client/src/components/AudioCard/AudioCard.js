@@ -45,7 +45,7 @@ const AudioCard = () => {
   };
 
   return (
-    <div className="app-container">
+    <div className="app-container" style={{ marginLeft: "196px" }}>
       <h2>Audio Player</h2>
       <Slider onChange={onChange} percentage={percentage} />
       <audio

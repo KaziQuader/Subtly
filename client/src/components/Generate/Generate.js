@@ -27,9 +27,9 @@ const Generate = () => {
     setValues({ ...values, [e.target.name]: e.target.value });
   };
   return (
-    <div className="app">
-      <form onSubmit={handleSubmit}>
-        <h1>Upload Audio/Video to Generate Subtitle</h1>
+    <div className="generate-container">
+      <form className="generate-form" onSubmit={handleSubmit}>
+        <h1 className="generate-h1">Upload Audio/Video to Generate Subtitle</h1>
         {inputs.map((input) => (
           <GenerateInput
             key={input.id}
@@ -38,7 +38,7 @@ const Generate = () => {
             onChange={onChange}
           />
         ))}
-        <button>Submit</button>
+        <button className="generate-button">Submit</button>
       </form>
     </div>
   );
