@@ -74,6 +74,21 @@ public class AudioDataController {
         return ResponseEntity.badRequest().body(null);
     }
 
+    @PostMapping("/transcript/submit")
+    public ResponseEntity<String> submitFileForTranscription(@RequestParam("file") MultipartFile file) {
+        String uploadFolder = System.getProperty("user.dir") + "\\tmp\\";
+        String fileUri = storageService.save(file, uploadFolder);
+        return ResponseEntity.badRequest().body(fileUri);
+    }
+
+    @PostMapping("/transcript/{file_id}")
+    public ResponseEntity<String> getTranscript(@PathVariable("file_id") String fileId,
+            @RequestParam("file") MultipartFile file) {
+        String uploadFolder = System.getProperty("user.dir") + "\\tmp\\";
+        String fileUri = storageService.save(file, uploadFolder);
+        return ResponseEntity.badRequest().body(null);
+    }
+
     @PutMapping(path = "/{audio_id}")
     public void updateAudioTranscript(@PathVariable("audio_id") Integer id,
             @RequestBody TranscriptUpdateRequest transcriptUpdateRequest) {
