@@ -7,10 +7,15 @@ h2 {
 }
 
 .app-container {
-  width: 600px;
+  width: 500px;
+  height: 270px;
   padding: 0 10px;
   background-color: #fff;
   padding: 30px 50px;
   border-radius: 5px;
   box-shadow: 0px 5px 8px rgba(0, 0, 0, 0.479);
+}
+
+.button {
+  width: 100px;
 }

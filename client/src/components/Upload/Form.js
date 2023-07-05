@@ -8,6 +8,9 @@ const Form = () => {
     audioFile: "",
   });
 
+  const [transcript, setTranscript] = useState("");
+  const [audioFile, setAudioFile] = useState();
+
   const inputs = [
     {
       id: 1,
@@ -31,13 +34,30 @@ const Form = () => {
     },
   ];
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const onChange = (e) => {
+    if (e.target.name === "Audio File") {
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        if (reader.readyState === 2) {
+          setAudioFile(reader.result);
+        }
+      };
+      reader.readAsDataURL(e.target.files[0]);
+    } else {
+      setTranscript({ [e.target.name]: e.target.value });
+    }
   };
 
-  const onChange = (e) => {
-    setValues({ ...values, [e.target.name]: e.target.value });
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    // Data has transcript name and the audio file
+    const data = { transcript, audioFile };
+    console.log(data);
+    // Write the post request to the controller here
   };
+
   return (
     <div className="app">
       <form onSubmit={handleSubmit}>

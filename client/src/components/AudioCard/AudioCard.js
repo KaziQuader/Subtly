@@ -3,8 +3,11 @@ import "./AudioCard.css";
 import Slider from "./Slider/Slider";
 import song from "../../chimes-7035.mp3";
 import ControlPanel from "./Controls/ControlPanel";
+import { useNavigate } from "react-router-dom";
 
 const AudioCard = () => {
+  const navigate = useNavigate();
+
   const [percentage, setPercentage] = useState();
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
@@ -44,6 +47,10 @@ const AudioCard = () => {
     setCurrentTime(time.toFixed(2));
   };
 
+  const handleSubmit = (e) => {
+    navigate("/edit");
+  };
+
   return (
     <div className="app-container" style={{ marginLeft: "196px" }}>
       <h2>Audio Player</h2>
@@ -62,6 +69,9 @@ const AudioCard = () => {
         duration={duration}
         currentTime={currentTime}
       />
+      <button className="button" onClick={handleSubmit}>
+        Edit
+      </button>
     </div>
   );
 };
