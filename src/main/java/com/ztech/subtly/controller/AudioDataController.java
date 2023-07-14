@@ -19,7 +19,7 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 
 import com.ztech.subtly.model.AudioData;
 import com.ztech.subtly.utils.StorageService;
-
+import com.ztech.subtly.utils.TranscriptionService;
 import com.ztech.subtly.controller.repository.AudioDataRepository;
 
 @RestController
@@ -76,8 +76,9 @@ public class AudioDataController {
 
     @PostMapping("/transcript/submit")
     public ResponseEntity<String> submitFileForTranscription(@RequestParam("file") MultipartFile file) {
-        String uploadFolder = System.getProperty("user.dir") + "\\tmp\\";
+        String uploadFolder = System.getProperty("user.dir") + "\\processing\\";
         String fileUri = storageService.save(file, uploadFolder);
+        TranscriptionService transcriptionService = new TranscriptionService(fileUri, file.getContentType());
         return ResponseEntity.badRequest().body(fileUri);
     }
 

@@ -6,28 +6,41 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class TranscriptionService {
+    private enum State {
+        EXTRACTING,
+        TRANSCRIPTING,
+        INTERNAL_ERROR,
+        COMPLETED,
+        BAD_REQUEST
+    };
+
     private String fileUri;
-    private boolean isProcessing;
-    private Thread processingThread;
 
     public TranscriptionService(
             String fileUri) {
         this.fileUri = fileUri;
-        this.isProcessing = false;
 
     }
 
-    public void generateTranscript() {
-        this.toggleProcessing();
-        this.processingThread = new Thread(new Runnable() {
-            public void run() {
-
-            }
-        });
-
-        this.processingThread.start();
+    public ResponseEntity<String> generateTranscript(String mimeType) {
+        State state = State.BAD_REQUEST;
+        if (mimeType.contains("video")) {
+            msg = saveState(State.TRANSCRIPTING);
+        } else if (mimeType.contains("video")) {
+            msg = saveState(State.EXTRACTING);
+        }
+        return new ResponseEntity<String>("", null, HttpStatus.BAD_REQUEST);
     }
 
     private void extractAudio() throws IOException {
@@ -39,16 +52,34 @@ public class TranscriptionService {
         }
     }
 
-    private void toggleProcessing() {
-        this.isProcessing = !this.isProcessing;
-    }
+    private boolean saveState(State state) {
+        Map<String, Object> map = new HashMap<>();
+        switch (state) {
+            case EXTRACTING:
+                map.put("state", "extracting");
+                break;
+            case TRANSCRIPTING:
+                map.put("state", "transcripting");
+                break;
+            case INTERNAL_ERROR:
+                map.put("state", "internal server error");
+                break;
+            case COMPLETED:
+                map.put("state", "completed");
+                break;
+            default:
+                map.put("state", "bad request");
+                break;
+        }
 
-    public boolean getProcessing() {
-        return this.isProcessing;
-    }
+        try {
+            new ObjectMapper().writeValue(Paths.get(".json").toFile(), map);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return false;
+        }
+        return true;
 
-    public void cancelTranscription() throws InterruptedException {
-        this.processingThread.join();
     }
 
 }
