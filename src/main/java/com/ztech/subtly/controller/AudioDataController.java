@@ -1,6 +1,7 @@
 package com.ztech.subtly.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -75,11 +76,10 @@ public class AudioDataController {
     }
 
     @PostMapping("/transcript/submit")
-    public ResponseEntity<String> submitFileForTranscription(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<Map<String, Object>> submitFileForTranscription(@RequestParam("file") MultipartFile file) {
         String uploadFolder = System.getProperty("user.dir") + "\\processing\\";
         String fileUri = storageService.save(file, uploadFolder);
-        TranscriptionService transcriptionService = new TranscriptionService(fileUri, file.getContentType());
-        return ResponseEntity.badRequest().body(fileUri);
+        return new TranscriptionService(fileUri).generateTranscript(file.getContentType());
     }
 
     @PostMapping("/transcript/{file_id}")

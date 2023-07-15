@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -33,42 +34,65 @@ public class TranscriptionService {
 
     }
 
-    public ResponseEntity<String> generateTranscript(String mimeType) {
-        State state = State.BAD_REQUEST;
-        if (mimeType.contains("video")) {
-            msg = saveState(State.TRANSCRIPTING);
+    public ResponseEntity<Map<String, Object>> generateTranscript(String mimeType) {
+        Map<String, Object> response = null;
+        if (mimeType.contains("audio")) {
+            response = saveState(State.TRANSCRIPTING);
         } else if (mimeType.contains("video")) {
-            msg = saveState(State.EXTRACTING);
+            response = saveState(State.EXTRACTING);
+        } else {
+            response = saveState(State.BAD_REQUEST);
         }
-        return new ResponseEntity<String>("", null, HttpStatus.BAD_REQUEST);
+
+        if (response == null) {
+            response = new HashMap<String, Object>();
+            response.put("state", "internal_server_error");
+            return new ResponseEntity<Map<String, Object>>(response, null,
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        return new ResponseEntity<Map<String, Object>>(response, null, HttpStatus.BAD_REQUEST);
     }
 
-    private void extractAudio() throws IOException {
-        ProcessBuilder pb = new ProcessBuilder("myCommand", "myArg1", "myArg2");
-        Process p = pb.start();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-        String line = "";
-        while ((line = reader.readLine()) != null) {
+    private void extractAudio() {
+        try {
+            new ProcessBuilder("myCommand", "myArg1", "myArg2").start();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+
     }
 
-    private boolean saveState(State state) {
+    private void startTranscription() {
+        try {
+            new ProcessBuilder("myCommand", "myArg1", "myArg2").start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private Map<String, Object> saveState(State state) {
         Map<String, Object> map = new HashMap<>();
+        String taskId = UUID.randomUUID().toString();
+        map.put("taskId", taskId);
         switch (state) {
             case EXTRACTING:
                 map.put("state", "extracting");
+                extractAudio();
                 break;
             case TRANSCRIPTING:
                 map.put("state", "transcripting");
+                startTranscription();
                 break;
             case INTERNAL_ERROR:
-                map.put("state", "internal server error");
+                map.put("state", "internal_server_error");
                 break;
             case COMPLETED:
                 map.put("state", "completed");
                 break;
             default:
-                map.put("state", "bad request");
+                map.put("state", "bad_request");
                 break;
         }
 
@@ -76,9 +100,9 @@ public class TranscriptionService {
             new ObjectMapper().writeValue(Paths.get(".json").toFile(), map);
         } catch (Exception ex) {
             ex.printStackTrace();
-            return false;
+            return null;
         }
-        return true;
+        return map;
 
     }
 
