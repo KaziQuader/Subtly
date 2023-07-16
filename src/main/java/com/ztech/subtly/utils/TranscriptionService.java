@@ -27,11 +27,16 @@ public class TranscriptionService {
     };
 
     private String fileUri;
+    private String uploadFolder;
 
     public TranscriptionService(
-            String fileUri) {
+            String fileUri, String uploadFolder) {
         this.fileUri = fileUri;
+        this.uploadFolder = uploadFolder;
+    }
 
+    public void getStatus() {
+        BufferedReader reader = new BufferedReader();
     }
 
     public ResponseEntity<Map<String, Object>> generateTranscript(String mimeType) {
@@ -75,7 +80,7 @@ public class TranscriptionService {
     private Map<String, Object> saveState(State state) {
         Map<String, Object> map = new HashMap<>();
         String taskId = UUID.randomUUID().toString();
-        map.put("taskId", taskId);
+        map.put("task_id", taskId);
         switch (state) {
             case EXTRACTING:
                 map.put("state", "extracting");
@@ -97,7 +102,7 @@ public class TranscriptionService {
         }
 
         try {
-            new ObjectMapper().writeValue(Paths.get(".json").toFile(), map);
+            new ObjectMapper().writeValue(Paths.get(this.uploadFolder, taskId + ".json").toFile(), map);
         } catch (Exception ex) {
             ex.printStackTrace();
             return null;

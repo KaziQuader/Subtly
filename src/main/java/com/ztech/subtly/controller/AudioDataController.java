@@ -79,14 +79,13 @@ public class AudioDataController {
     public ResponseEntity<Map<String, Object>> submitFileForTranscription(@RequestParam("file") MultipartFile file) {
         String uploadFolder = System.getProperty("user.dir") + "\\processing\\";
         String fileUri = storageService.save(file, uploadFolder);
-        return new TranscriptionService(fileUri).generateTranscript(file.getContentType());
+        return new TranscriptionService(fileUri, uploadFolder).generateTranscript(file.getContentType());
     }
 
-    @PostMapping("/transcript/{file_id}")
-    public ResponseEntity<String> getTranscript(@PathVariable("file_id") String fileId,
+    @PostMapping("/transcript/{task_id}")
+    public ResponseEntity<String> getTranscript(@PathVariable("task_id") String taskId,
             @RequestParam("file") MultipartFile file) {
-        String uploadFolder = System.getProperty("user.dir") + "\\tmp\\";
-        String fileUri = storageService.save(file, uploadFolder);
+
         return ResponseEntity.badRequest().body(null);
     }
 
