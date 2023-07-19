@@ -16,7 +16,8 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
+// cat file.txt | grep -o -E time=[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]* | tail -1
+// 
 public class TranscriptionService {
     private enum State {
         EXTRACTING,
