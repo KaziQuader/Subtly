@@ -16,8 +16,9 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-// cat file.txt | grep -o -E time=[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]* | tail -1
-// 
+// cat file.txt | grep -E -o  'DURATION.*$' | tail -1 | grep -E -o '[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]*$'
+// cat file.txt | grep -E -o '.*time=.*'| grep -E -o '[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]*'| tail -1
+
 public class TranscriptionService {
     private enum State {
         EXTRACTING,
@@ -34,10 +35,6 @@ public class TranscriptionService {
             String fileUri, String uploadFolder) {
         this.fileUri = fileUri;
         this.uploadFolder = uploadFolder;
-    }
-
-    public void getStatus() {
-        BufferedReader reader = new BufferedReader();
     }
 
     public ResponseEntity<Map<String, Object>> generateTranscript(String mimeType) {
@@ -60,19 +57,32 @@ public class TranscriptionService {
         return new ResponseEntity<Map<String, Object>>(response, null, HttpStatus.BAD_REQUEST);
     }
 
-    private void extractAudio() {
+    public void extractAudio() {
+        String[] command = new String[] { "ffmpeg", "-y", "-vn", "-i", "input.mp4", "input.wav" };
+
         try {
-            new ProcessBuilder("myCommand", "myArg1", "myArg2").start();
-        } catch (IOException e) {
+            ProcessBuilder pb = new ProcessBuilder(command);
+            pb.directory(new File(uploadFolder));
+            pb.redirectError(new File(uploadFolder + "/extract.log"));
+            pb.redirectOutput(new File(uploadFolder + "/extract.log"));
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
     }
 
-    private void startTranscription() {
+    public void transcribeAudio() {
+        String[] command = new String[] { "whisper", "--model", "tiny.en", "--model_dir", "../../lang_models/",
+                "--output_format", "srt", "--task", "transcribe", "input.wav" };
+
         try {
-            new ProcessBuilder("myCommand", "myArg1", "myArg2").start();
-        } catch (IOException e) {
+            ProcessBuilder pb = new ProcessBuilder(command);
+            pb.directory(new File(uploadFolder));
+            pb.redirectError(new File(uploadFolder + "/transcribe.log"));
+            pb.redirectOutput(new File(uploadFolder + "/transcribe.log"));
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -89,7 +99,7 @@ public class TranscriptionService {
                 break;
             case TRANSCRIPTING:
                 map.put("state", "transcripting");
-                startTranscription();
+                transcribeAudio();
                 break;
             case INTERNAL_ERROR:
                 map.put("state", "internal_server_error");
