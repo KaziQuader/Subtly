@@ -75,12 +75,7 @@ public class TranscriptionService {
 
     }
 
-    public void getExtractionStatus() {
-        // cat file.txt | grep -E -o 'DURATION.*$' | tail -1 | grep -E -o
-        // '[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]*$'
-        // cat file.txt | grep -E -o '.*time=.*'| grep -E -o
-        // '[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]*'| tail -1
-
+    public double getExtractionStatus() {
         try {
             String command[] = new String[] { "cat", "extract.log" };
             ProcessBuilder pb = new ProcessBuilder(command);
@@ -105,17 +100,20 @@ public class TranscriptionService {
 
             }
             System.out.println(duration + " " + time);
-            if (duration != null) {
+            if (duration != null && time != null) {
                 pattern = Pattern.compile("[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{2}");
                 Matcher matcher1 = pattern.matcher(duration);
                 Matcher matcher2 = pattern.matcher(time);
                 if (matcher1.find() && matcher2.find()) {
                     duration = matcher1.group();
                     time = matcher2.group();
-
+                    String timePrefix = "1970-02-01 ";
                     SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SS");// dd/MM/yyyy
-                    long date = sdfDate.parse("1970-01-01 " + time).toInstant().toEpochMilli();
-                    System.out.println(date);
+                    long millisCurrentTime = sdfDate.parse(timePrefix + time).getTime();
+                    long millisTotalTime = sdfDate.parse(timePrefix + duration).getTime();
+                    double extractionProgress = millisCurrentTime * 100 / millisTotalTime;
+                    System.out.println(extractionProgress);
+                    return extractionProgress;
 
                 }
             }
@@ -123,6 +121,7 @@ public class TranscriptionService {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return 0.0;
 
     }
 
