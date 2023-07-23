@@ -7,9 +7,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -65,6 +68,57 @@ public class TranscriptionService {
             pb.directory(new File(uploadFolder));
             pb.redirectError(new File(uploadFolder + "/extract.log"));
             pb.redirectOutput(new File(uploadFolder + "/extract.log"));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public void getExtractionStatus() {
+        // cat file.txt | grep -E -o 'DURATION.*$' | tail -1 | grep -E -o
+        // '[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]*$'
+        // cat file.txt | grep -E -o '.*time=.*'| grep -E -o
+        // '[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]*'| tail -1
+
+        try {
+            String command[] = new String[] { "cat", "extract.log" };
+            ProcessBuilder pb = new ProcessBuilder(command);
+            pb.directory(new File(uploadFolder));
+            InputStreamReader inputStreamReader = new InputStreamReader(pb.start().getInputStream());
+            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+            String line = "";
+            Pattern pattern = Pattern
+                    .compile(
+                            "Duration:\s[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{2}|time=[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{2}");
+            String duration = null;
+            String time = null;
+            while ((line = bufferedReader.readLine()) != null) {
+                Matcher matcher = pattern.matcher(line);
+                if (matcher.find()) {
+                    if (matcher.group().startsWith("Duration"))
+                        duration = matcher.group();
+                    else
+                        time = matcher.group();
+                    System.out.println(matcher.group());
+                }
+
+            }
+            System.out.println(duration + " " + time);
+            if (duration != null) {
+                pattern = Pattern.compile("[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{2}");
+                Matcher matcher1 = pattern.matcher(duration);
+                Matcher matcher2 = pattern.matcher(time);
+                if (matcher1.find() && matcher2.find()) {
+                    duration = matcher1.group();
+                    time = matcher2.group();
+
+                    SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SS");// dd/MM/yyyy
+                    long date = sdfDate.parse("1970-01-01 " + time).toInstant().toEpochMilli();
+                    System.out.println(date);
+
+                }
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
