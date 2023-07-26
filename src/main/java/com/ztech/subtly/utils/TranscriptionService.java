@@ -2,12 +2,8 @@ package com.ztech.subtly.utils;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -15,12 +11,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-// cat file.txt | grep -E -o  'DURATION.*$' | tail -1 | grep -E -o '[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]*$'
-// cat file.txt | grep -E -o '.*time=.*'| grep -E -o '[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]*'| tail -1
 
 public class TranscriptionService {
     private enum State {
@@ -95,11 +88,9 @@ public class TranscriptionService {
                         duration = matcher.group();
                     else
                         time = matcher.group();
-                    System.out.println(matcher.group());
                 }
 
             }
-            System.out.println(duration + " " + time);
             if (duration != null && time != null) {
                 pattern = Pattern.compile("[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{2}");
                 Matcher matcher1 = pattern.matcher(duration);
@@ -107,12 +98,11 @@ public class TranscriptionService {
                 if (matcher1.find() && matcher2.find()) {
                     duration = matcher1.group();
                     time = matcher2.group();
-                    String timePrefix = "1970-02-01 ";
-                    SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SS");// dd/MM/yyyy
-                    long millisCurrentTime = sdfDate.parse(timePrefix + time).getTime();
-                    long millisTotalTime = sdfDate.parse(timePrefix + duration).getTime();
+
+                    double millisCurrentTime = extractSeconds(time);
+                    double millisTotalTime = extractSeconds(duration);
                     double extractionProgress = millisCurrentTime * 100 / millisTotalTime;
-                    System.out.println(extractionProgress);
+
                     return extractionProgress;
 
                 }
@@ -122,7 +112,65 @@ public class TranscriptionService {
             e.printStackTrace();
         }
         return 0.0;
+    }
 
+    public double getTranscriptionStatus() {
+        try {
+            String command[] = new String[] { "cat", "transcribe.log" };
+            ProcessBuilder pb = new ProcessBuilder(command);
+            pb.directory(new File(uploadFolder));
+            InputStreamReader inputStreamReader = new InputStreamReader(pb.start().getInputStream());
+            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+            String line = "";
+            Pattern pattern = Pattern
+                    .compile(
+                            "duration=[0-9]+\\.[0-9]+|[0-9]{2}:[0-9]{2}\\.[0-9]{3}");
+            String duration = null;
+            String time = null;
+            while ((line = bufferedReader.readLine()) != null) {
+                Matcher matcher = pattern.matcher(line);
+                if (matcher.find()) {
+                    if (matcher.group().startsWith("duration="))
+                        duration = matcher.group();
+                    else
+                        time = matcher.group();
+                }
+
+            }
+            if (duration != null && time != null) {
+                pattern = Pattern.compile("[0-9]{2}:[0-9]{2}\\.[0-9]{3}");
+                Matcher timeMatcher = pattern.matcher(time);
+                if (timeMatcher.find()) {
+                    time = timeMatcher.group();
+
+                    double millisCurrentTime = extractSeconds(time);
+                    double millisTotalTime = Double.parseDouble(duration.replace("duration=", "")) * 60;
+                    double transcriptionProgress = millisCurrentTime * 100.0 / millisTotalTime;
+                    return transcriptionProgress;
+
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0.0;
+    }
+
+    private double extractSeconds(String time) {
+        String[] timeParts = time.split(":");
+        double seconds = 0.0;
+        if (timeParts.length > 2) {
+            seconds = Double.parseDouble(timeParts[0]) * 3600; // hours to seconds
+            seconds += Double.parseDouble(timeParts[1]) * 60; // minutes to seconds
+            seconds += Double.parseDouble(timeParts[2]); // seconds
+
+        } else {
+
+            seconds = Double.parseDouble(timeParts[0]) * 3600; // hours to seconds
+            seconds += Double.parseDouble(timeParts[1]) * 60; // minutes to seconds
+        }
+        return seconds;
     }
 
     public void transcribeAudio() {
