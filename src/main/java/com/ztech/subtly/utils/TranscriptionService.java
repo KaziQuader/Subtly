@@ -3,72 +3,126 @@ package com.ztech.subtly.utils;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 public class TranscriptionService {
-    private enum State {
-        EXTRACTING,
-        TRANSCRIPTING,
-        INTERNAL_ERROR,
-        COMPLETED,
-        BAD_REQUEST
-    };
-
     private String fileUri;
     private String uploadFolder;
+    private String taskId;
 
     public TranscriptionService(
-            String fileUri, String uploadFolder) {
+            String fileUri, String uploadFolder, String taskId) {
         this.fileUri = fileUri;
         this.uploadFolder = uploadFolder;
+        this.taskId = taskId;
+    }
+
+    public TranscriptionService(String taskId) {
+
     }
 
     public ResponseEntity<Map<String, Object>> generateTranscript(String mimeType) {
-        Map<String, Object> response = null;
+        Map<String, Object> response = new HashMap<String, Object>();
+        response.put("taskId", this.taskId);
         if (mimeType.contains("audio")) {
-            response = saveState(State.TRANSCRIPTING);
+            response.put("state", "transcripting");
+            transcribeAudio();
+
         } else if (mimeType.contains("video")) {
-            response = saveState(State.EXTRACTING);
+            response.put("state", "extracting");
+            new Thread(null, new Runnable() {
+                public void run() {
+                    try {
+                        Process audioExtraction = extractAudio();
+                        audioExtraction.waitFor();
+                        transcribeAudio();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                }
+            }).start();
+
         } else {
-            response = saveState(State.BAD_REQUEST);
-        }
+            response.put("state", "bad_request");
+            response.put("msg", "please submit a video or audio file");
+            return new ResponseEntity<Map<String, Object>>(response, null, HttpStatus.BAD_REQUEST);
 
-        if (response == null) {
-            response = new HashMap<String, Object>();
-            response.put("state", "internal_server_error");
-            return new ResponseEntity<Map<String, Object>>(response, null,
-                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
-        return new ResponseEntity<Map<String, Object>>(response, null, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<Map<String, Object>>(response, null, HttpStatus.OK);
     }
 
-    public void extractAudio() {
-        String[] command = new String[] { "ffmpeg", "-y", "-vn", "-i", "input.mp4", "input.wav" };
+    public Process extractAudio() {
+        String[] command = new String[] { "ffmpeg", "-y", "-vn", "-i", fileUri, "input.wav" };
 
         try {
             ProcessBuilder pb = new ProcessBuilder(command);
             pb.directory(new File(uploadFolder));
             pb.redirectError(new File(uploadFolder + "/extract.log"));
             pb.redirectOutput(new File(uploadFolder + "/extract.log"));
+            return pb.start();
 
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return null;
+    }
+
+    public Process transcribeAudio() {
+        String[] command = new String[] { "whisper", "--model", "tiny.en", "--model_dir", "../../lang_models/",
+                "--output_format", "srt", "--task", "transcribe", "input.wav" };
+
+        try {
+            ProcessBuilder pb = new ProcessBuilder(command);
+            pb.directory(new File(uploadFolder));
+            pb.redirectError(new File(uploadFolder + "/transcribe.log"));
+            pb.redirectOutput(new File(uploadFolder + "/transcribe.log"));
+            return pb.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public ResponseEntity<Map<String, Object>> getSrtFileUri() {
+        String srtFileUri = uploadFolder + "/input.srt";
+        File file = new File(srtFileUri);
+        Map<String, Object> response = new HashMap<String, Object>();
+        if (file.exists()) {
+            response.put("fileUri", srtFileUri);
+            return new ResponseEntity<Map<String, Object>>(response, null, HttpStatus.OK);
+        }
+        return getStatus();
+    }
+
+    private ResponseEntity<Map<String, Object>> getStatus() {
+        File extractLog = new File(uploadFolder + "/extract.log");
+        File transcribeLog = new File(uploadFolder + "/transcribe.log");
+        Map<String, Object> response = new HashMap<String, Object>();
+        if (transcribeLog.exists()) {
+            response.put("state", "transcripting");
+            response.put("progress", getTranscriptionProgress());
+            return new ResponseEntity<Map<String, Object>>(response, null, HttpStatus.OK);
+
+        } else if (extractLog.exists()) {
+            response.put("state", "extracting");
+            response.put("progress", getExtractionProgress());
+            return new ResponseEntity<Map<String, Object>>(response, null, HttpStatus.OK);
+
+        }
+
+        response.put("state", "bad_request");
+        return new ResponseEntity<Map<String, Object>>(response, null, HttpStatus.BAD_REQUEST);
 
     }
 
-    public double getExtractionStatus() {
+    private double getExtractionProgress() {
         try {
             String command[] = new String[] { "cat", "extract.log" };
             ProcessBuilder pb = new ProcessBuilder(command);
@@ -114,7 +168,7 @@ public class TranscriptionService {
         return 0.0;
     }
 
-    public double getTranscriptionStatus() {
+    private double getTranscriptionProgress() {
         try {
             String command[] = new String[] { "cat", "transcribe.log" };
             ProcessBuilder pb = new ProcessBuilder(command);
@@ -171,56 +225,6 @@ public class TranscriptionService {
             seconds += Double.parseDouble(timeParts[1]) * 60; // minutes to seconds
         }
         return seconds;
-    }
-
-    public void transcribeAudio() {
-        String[] command = new String[] { "whisper", "--model", "tiny.en", "--model_dir", "../../lang_models/",
-                "--output_format", "srt", "--task", "transcribe", "input.wav" };
-
-        try {
-            ProcessBuilder pb = new ProcessBuilder(command);
-            pb.directory(new File(uploadFolder));
-            pb.redirectError(new File(uploadFolder + "/transcribe.log"));
-            pb.redirectOutput(new File(uploadFolder + "/transcribe.log"));
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-    }
-
-    private Map<String, Object> saveState(State state) {
-        Map<String, Object> map = new HashMap<>();
-        String taskId = UUID.randomUUID().toString();
-        map.put("task_id", taskId);
-        switch (state) {
-            case EXTRACTING:
-                map.put("state", "extracting");
-                extractAudio();
-                break;
-            case TRANSCRIPTING:
-                map.put("state", "transcripting");
-                transcribeAudio();
-                break;
-            case INTERNAL_ERROR:
-                map.put("state", "internal_server_error");
-                break;
-            case COMPLETED:
-                map.put("state", "completed");
-                break;
-            default:
-                map.put("state", "bad_request");
-                break;
-        }
-
-        try {
-            new ObjectMapper().writeValue(Paths.get(this.uploadFolder, taskId + ".json").toFile(), map);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            return null;
-        }
-        return map;
-
     }
 
 }

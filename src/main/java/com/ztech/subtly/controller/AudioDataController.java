@@ -2,6 +2,7 @@ package com.ztech.subtly.controller;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -55,14 +56,14 @@ public class AudioDataController {
     @GetMapping(path = "/file/{file_id}")
     public @ResponseBody ResponseEntity<StreamingResponseBody> getAudioFile(@PathVariable("file_id") String file_id,
             @RequestHeader(value = "Range", required = false) String rangeHeader) {
-        String path = System.getProperty("user.dir") + "\\uploads\\" + file_id;
+        String path = System.getProperty("user.dir") + "/uploads/" + file_id;
         return storageService.serveMediaFile(path, rangeHeader);
     }
 
     @PostMapping
     public ResponseEntity<String> addAudioData(@RequestParam("transcript") String transcript,
             @RequestParam("file") MultipartFile file) {
-        String uploadFolder = System.getProperty("user.dir") + "\\uploads\\";
+        String uploadFolder = System.getProperty("user.dir") + "/uploads/";
         String fileUri = storageService.save(file, uploadFolder);
 
         if (fileUri != null) {
@@ -77,16 +78,23 @@ public class AudioDataController {
 
     @PostMapping("/transcript/submit")
     public ResponseEntity<Map<String, Object>> submitFileForTranscription(@RequestParam("file") MultipartFile file) {
-        String uploadFolder = System.getProperty("user.dir") + "\\processing\\";
+        String taskId = UUID.randomUUID().toString();
+        String uploadFolder = System.getProperty("user.dir") + "/processing/" + taskId + "/";
         String fileUri = storageService.save(file, uploadFolder);
-        return new TranscriptionService(fileUri, uploadFolder).generateTranscript(file.getContentType());
+        return new TranscriptionService(fileUri, uploadFolder, taskId).generateTranscript(file.getContentType());
     }
 
-    @PostMapping("/transcript/{task_id}")
-    public ResponseEntity<String> getTranscript(@PathVariable("task_id") String taskId,
-            @RequestParam("file") MultipartFile file) {
+    @GetMapping(path = "/transcript/{taskId}")
+    public @ResponseBody ResponseEntity<StreamingResponseBody> getSrtFile(@PathVariable("taskId") String taskId) {
+        String path = System.getProperty("user.dir") + fileUri;
+        return storageService.serveMediaFile(path, rangeHeader);
+    }
 
-        return ResponseEntity.badRequest().body(null);
+    @GetMapping(path = "/transcript/file/{fileUri}")
+    public @ResponseBody ResponseEntity<StreamingResponseBody> getSrtFile(@PathVariable("fileUri") String fileUri,
+            @RequestHeader(value = "Range", required = false) String rangeHeader) {
+        String path = System.getProperty("user.dir") + fileUri;
+        return storageService.serveMediaFile(path, rangeHeader);
     }
 
     @PutMapping(path = "/{audio_id}")
