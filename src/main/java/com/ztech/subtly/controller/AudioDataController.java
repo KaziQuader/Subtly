@@ -2,7 +2,6 @@ package com.ztech.subtly.controller;
 
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -78,20 +77,19 @@ public class AudioDataController {
 
     @PostMapping("/transcript/submit")
     public ResponseEntity<Map<String, Object>> submitFileForTranscription(@RequestParam("file") MultipartFile file) {
-        String taskId = UUID.randomUUID().toString();
-        String uploadFolder = System.getProperty("user.dir") + "/processing/" + taskId + "/";
-        String fileUri = storageService.save(file, uploadFolder);
-        return new TranscriptionService(fileUri, uploadFolder, taskId).generateTranscript(file.getContentType());
+        return new TranscriptionService(file)
+                .generateTranscript(file.getContentType());
     }
 
     @GetMapping(path = "/transcript/{taskId}")
-    public @ResponseBody ResponseEntity<StreamingResponseBody> getSrtFile(@PathVariable("taskId") String taskId) {
-        String path = System.getProperty("user.dir") + fileUri;
-        return storageService.serveMediaFile(path, rangeHeader);
+    public @ResponseBody ResponseEntity<Map<String, Object>> getStatus(@PathVariable("taskId") String taskId) {
+        TranscriptionService transcriptionService = new TranscriptionService(taskId);
+        return transcriptionService.getStatus();
     }
 
-    @GetMapping(path = "/transcript/file/{fileUri}")
-    public @ResponseBody ResponseEntity<StreamingResponseBody> getSrtFile(@PathVariable("fileUri") String fileUri,
+    @GetMapping(path = "/transcript/file")
+    public @ResponseBody ResponseEntity<StreamingResponseBody> downloadTranscription(
+            @RequestParam("fileUri") String fileUri,
             @RequestHeader(value = "Range", required = false) String rangeHeader) {
         String path = System.getProperty("user.dir") + fileUri;
         return storageService.serveMediaFile(path, rangeHeader);

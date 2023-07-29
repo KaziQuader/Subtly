@@ -5,26 +5,34 @@ import java.io.File;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.multipart.MultipartFile;
 
 public class TranscriptionService {
-    private String fileUri;
-    private String uploadFolder;
+
+    private String processingFolder;
     private String taskId;
+    private String fileName;
 
     public TranscriptionService(
-            String fileUri, String uploadFolder, String taskId) {
-        this.fileUri = fileUri;
-        this.uploadFolder = uploadFolder;
-        this.taskId = taskId;
+            MultipartFile file) {
+        this.taskId = UUID.randomUUID().toString();
+        this.processingFolder = System.getProperty("user.dir") + "/processing/" + taskId;
+        this.fileName = file.getOriginalFilename();
+        StorageService storageService = new StorageService();
+        storageService.save(file, processingFolder);
+
     }
 
     public TranscriptionService(String taskId) {
-
+        this.taskId = taskId;
+        this.processingFolder = System.getProperty("user.dir") + "/processing/" + taskId;
     }
 
     public ResponseEntity<Map<String, Object>> generateTranscript(String mimeType) {
@@ -59,13 +67,13 @@ public class TranscriptionService {
     }
 
     public Process extractAudio() {
-        String[] command = new String[] { "ffmpeg", "-y", "-vn", "-i", fileUri, "input.wav" };
+        String[] command = new String[] { "ffmpeg", "-y", "-vn", "-i", fileName, "input.wav" };
 
         try {
             ProcessBuilder pb = new ProcessBuilder(command);
-            pb.directory(new File(uploadFolder));
-            pb.redirectError(new File(uploadFolder + "/extract.log"));
-            pb.redirectOutput(new File(uploadFolder + "/extract.log"));
+            pb.directory(new File(processingFolder));
+            pb.redirectError(new File(processingFolder + "/extract.log"));
+            pb.redirectOutput(new File(processingFolder + "/extract.log"));
             return pb.start();
 
         } catch (Exception e) {
@@ -80,9 +88,9 @@ public class TranscriptionService {
 
         try {
             ProcessBuilder pb = new ProcessBuilder(command);
-            pb.directory(new File(uploadFolder));
-            pb.redirectError(new File(uploadFolder + "/transcribe.log"));
-            pb.redirectOutput(new File(uploadFolder + "/transcribe.log"));
+            pb.directory(new File(processingFolder));
+            pb.redirectError(new File(processingFolder + "/transcribe.log"));
+            pb.redirectOutput(new File(processingFolder + "/transcribe.log"));
             return pb.start();
         } catch (Exception e) {
             e.printStackTrace();
@@ -90,43 +98,39 @@ public class TranscriptionService {
         return null;
     }
 
-    public ResponseEntity<Map<String, Object>> getSrtFileUri() {
-        String srtFileUri = uploadFolder + "/input.srt";
-        File file = new File(srtFileUri);
+    public ResponseEntity<Map<String, Object>> getStatus() {
+        File extractLog = new File(processingFolder + "/extract.log");
+        File transcribeLog = new File(processingFolder + "/transcribe.log");
+        File srtFile = new File(processingFolder + "/input.srt");
         Map<String, Object> response = new HashMap<String, Object>();
-        if (file.exists()) {
-            response.put("fileUri", srtFileUri);
-            return new ResponseEntity<Map<String, Object>>(response, null, HttpStatus.OK);
-        }
-        return getStatus();
-    }
+        ResponseEntity<Map<String, Object>> responseEntity;
+        if (srtFile.exists()) {
+            response.put("state", "complete");
+            response.put("fileUri", srtFile);
+            responseEntity = new ResponseEntity<Map<String, Object>>(response, null, HttpStatus.OK);
 
-    private ResponseEntity<Map<String, Object>> getStatus() {
-        File extractLog = new File(uploadFolder + "/extract.log");
-        File transcribeLog = new File(uploadFolder + "/transcribe.log");
-        Map<String, Object> response = new HashMap<String, Object>();
-        if (transcribeLog.exists()) {
+        } else if (transcribeLog.exists()) {
             response.put("state", "transcripting");
             response.put("progress", getTranscriptionProgress());
-            return new ResponseEntity<Map<String, Object>>(response, null, HttpStatus.OK);
+            responseEntity = new ResponseEntity<Map<String, Object>>(response, null, HttpStatus.OK);
 
         } else if (extractLog.exists()) {
             response.put("state", "extracting");
             response.put("progress", getExtractionProgress());
-            return new ResponseEntity<Map<String, Object>>(response, null, HttpStatus.OK);
+            responseEntity = new ResponseEntity<Map<String, Object>>(response, null, HttpStatus.OK);
 
+        } else {
+            response.put("state", "internal_server_error");
+            responseEntity = new ResponseEntity<Map<String, Object>>(response, null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
-        response.put("state", "bad_request");
-        return new ResponseEntity<Map<String, Object>>(response, null, HttpStatus.BAD_REQUEST);
-
+        return responseEntity;
     }
 
     private double getExtractionProgress() {
         try {
             String command[] = new String[] { "cat", "extract.log" };
             ProcessBuilder pb = new ProcessBuilder(command);
-            pb.directory(new File(uploadFolder));
+            pb.directory(new File(processingFolder));
             InputStreamReader inputStreamReader = new InputStreamReader(pb.start().getInputStream());
             BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
             String line = "";
@@ -172,7 +176,7 @@ public class TranscriptionService {
         try {
             String command[] = new String[] { "cat", "transcribe.log" };
             ProcessBuilder pb = new ProcessBuilder(command);
-            pb.directory(new File(uploadFolder));
+            pb.directory(new File(processingFolder));
             InputStreamReader inputStreamReader = new InputStreamReader(pb.start().getInputStream());
             BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
             String line = "";
