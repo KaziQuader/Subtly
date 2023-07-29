@@ -1,9 +1,13 @@
 import React, { useState } from "react";
 import "./Edit.css";
+import "./utils/CRUD.js";
+import { useNavigate } from "react-router-dom";
 
-const Edit = () => {
+const Edit = ({ id }) => {
   const [edit, setEdit] = useState("");
   const [focused, setFocused] = useState(false);
+  const navigate = useNavigate();
+
   const handleFocus = (e) => {
     setFocused(true);
   };
@@ -15,6 +19,13 @@ const Edit = () => {
     console.log(newTranscript);
 
     // Write the put request to the controller here
+    const { statusCode, responseBody } = put(getServerUrl(), { transcript: newTranscript }, id);
+    if (statusCode != 200) {
+      alert(`Sorry, update failed due to an error. Please check your connection. Error info:${responseBody}`);
+    }
+    else {
+      navigate("/");
+    }
   };
 
   return (

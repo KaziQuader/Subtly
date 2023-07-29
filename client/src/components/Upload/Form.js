@@ -56,6 +56,8 @@ const Form = () => {
     const data = { transcript, audioFile };
     console.log(data);
     // Write the post request to the controller here
+    const form = new Form();
+
   };
 
   return (
