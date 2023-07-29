@@ -12,16 +12,16 @@ const Edit = ({ id }) => {
     setFocused(true);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const newTranscript = { edit };
     console.log(newTranscript);
 
     // Write the put request to the controller here
-    const { statusCode, responseBody } = put(getServerUrl(), { transcript: newTranscript }, id);
+    const { statusCode, responseBody } = await put(getServerUrl(), { transcript: newTranscript }, id, null);
     if (statusCode != 200) {
-      alert(`Sorry, update failed due to an error. Please check your connection. Error info:${responseBody}`);
+      alert(`Sorry, update failed due to an error. Please check your connection. Error info:${JSON.stringify(responseBody)}`);
     }
     else {
       navigate("/");

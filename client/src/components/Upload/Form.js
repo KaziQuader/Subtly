@@ -1,6 +1,7 @@
 import { useState } from "react";
 import "./Form.css";
 import FormInput from "./FormInput.js";
+import { useNavigate } from "react-router-dom";
 
 const Form = () => {
   const [values, setValues] = useState({
@@ -10,6 +11,7 @@ const Form = () => {
 
   const [transcript, setTranscript] = useState("");
   const [audioFile, setAudioFile] = useState();
+  const navigate = useNavigate();
 
   const inputs = [
     {
@@ -49,7 +51,7 @@ const Form = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Data has transcript name and the audio file
@@ -57,7 +59,13 @@ const Form = () => {
     console.log(data);
     // Write the post request to the controller here
     const form = new Form();
-
+    form.append("transcript", transcript);
+    form.append("file", audioFile);
+    const { stausCode, responeBody } = await post(getServerUrl(), null, null, form);
+    if (stausCode != 200) {
+      alert("Error submitting audio data" + JSON.stringify(responeBody))
+    }
+    else navigate("/")
   };
 
   return (

@@ -2,15 +2,22 @@ const getServerUrl = () => {
     return "localhost:8080/api/v1/audio"
 }
 
-const post = async (url, body, pathVariable) => {
-    if (!body) return null;
-    else if (pathVariable) {
-        url = url + "/" + pathVariable;
+const post = async (url, body, pathVariable, form) => {
+    let response;
+    if (!form) {
+        if (!body) return null;
+        else if (pathVariable) {
+            url = url + "/" + pathVariable;
+        }
+        response = await fetch(url, { method: "POST", body: JSON.stringify(body) });
     }
-    const response = await fetch(url, { method: "POST", body: JSON.stringify(body) });
+    else
+        response = await fetch(url, { method: "POST", body: form });
+
     const responseBody = await response.json();
     const responseStatus = response.status;
     return { responseBody, responseStatus };
+
 }
 
 const put = async (url, body, pathVariable) => {
