@@ -1,8 +1,8 @@
-const getServerUrl = () => {
+export const getServerUrl = () => {
     return "localhost:8080/api/v1/audio"
 }
 
-const post = async (url, body, pathVariable, form) => {
+export const post = async (url, body, pathVariable, form) => {
     let response;
     if (!form) {
         if (!body) return null;
@@ -20,7 +20,7 @@ const post = async (url, body, pathVariable, form) => {
 
 }
 
-const put = async (url, body, pathVariable) => {
+export const put = async (url, body, pathVariable) => {
     if (!body && !pathVariable) return null;
 
     if (pathVariable)
@@ -35,7 +35,7 @@ const put = async (url, body, pathVariable) => {
     return { responseBody, responseStatus };
 }
 
-const get = async (url, body, pathVariable) => {
+export const get = async (url, body, pathVariable) => {
     if (pathVariable)
         url = url + "/" + pathVariable
     if (body)

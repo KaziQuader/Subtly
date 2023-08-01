@@ -123,6 +123,7 @@ public class TranscriptionService {
             response.put("state", "internal_server_error");
             responseEntity = new ResponseEntity<Map<String, Object>>(response, null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
+
         return responseEntity;
     }
 
