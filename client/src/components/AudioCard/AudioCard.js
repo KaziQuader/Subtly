@@ -1,11 +1,11 @@
 import React, { useState, useRef } from "react";
 import "./AudioCard.css";
 import Slider from "./Slider/Slider";
-import song from "../../chimes-7035.mp3";
+// import song from "../../chimes-7035.mp3";
 import ControlPanel from "./Controls/ControlPanel";
 import { useNavigate } from "react-router-dom";
 
-const AudioCard = () => {
+const AudioCard = ({ transcript, fileUri }) => {
   const navigate = useNavigate();
 
   const [percentage, setPercentage] = useState();
@@ -53,7 +53,6 @@ const AudioCard = () => {
 
   return (
     <div className="app-container" style={{ marginLeft: "196px" }}>
-      <h2>Audio Player</h2>
       <Slider onChange={onChange} percentage={percentage} />
       <audio
         ref={audioRef}
@@ -61,8 +60,9 @@ const AudioCard = () => {
         onLoadedData={(e) => {
           setDuration(e.currentTarget.duration.toFixed(2));
         }}
-        src={song}
+        src={fileUri}
       ></audio>
+      <p>{transcript}</p>
       <ControlPanel
         play={play}
         isPlaying={isPlaying}

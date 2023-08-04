@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import "./GenerateInput.css";
 
 const GenerateInput = (props) => {

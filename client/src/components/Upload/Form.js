@@ -1,13 +1,14 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import "./Form.css";
 import FormInput from "./FormInput.js";
 import { useNavigate } from "react-router-dom";
+import { getServerUrl, post } from "../../utils/CRUD";
 
 const Form = () => {
-  const [values, setValues] = useState({
+  const values = {
     transcript: "",
     audioFile: "",
-  });
+  };
 
   const [transcript, setTranscript] = useState("");
   const [audioFile, setAudioFile] = useState();
@@ -61,8 +62,9 @@ const Form = () => {
     const form = new Form();
     form.append("transcript", transcript);
     form.append("file", audioFile);
-    const { stausCode, responeBody } = await post(getServerUrl(), null, null, form);
-    if (stausCode != 200) {
+
+    const { stausCode, responeBody } = await post(getServerUrl, null, null, form);
+    if (stausCode !== 200) {
       alert("Error submitting audio data" + JSON.stringify(responeBody))
     }
     else navigate("/")

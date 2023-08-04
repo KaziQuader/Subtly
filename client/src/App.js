@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import React, { Suspense } from "react";
 import "./App.css";
 import Navbar from "./components/Navbar/Navbar.js";
 import View from "./components/View/View.js";

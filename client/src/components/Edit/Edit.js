@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "./Edit.css";
-import "./utils/CRUD.js";
+import { getServerUrl, put } from "../../utils/CRUD";
 import { useNavigate } from "react-router-dom";
 
 const Edit = ({ id }) => {
@@ -20,7 +20,7 @@ const Edit = ({ id }) => {
 
     // Write the put request to the controller here
     const { statusCode, responseBody } = await put(getServerUrl(), { transcript: newTranscript }, id, null);
-    if (statusCode != 200) {
+    if (statusCode !== 200) {
       alert(`Sorry, update failed due to an error. Please check your connection. Error info:${JSON.stringify(responseBody)}`);
     }
     else {
