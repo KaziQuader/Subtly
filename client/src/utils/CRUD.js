@@ -1,5 +1,5 @@
 export const getServerUrl = () => {
-    return "localhost:8080/api/v1/audio"
+    return "http://localhost:8080/api/v1/audio"
 }
 
 export const post = async (url, body, pathVariable, form) => {

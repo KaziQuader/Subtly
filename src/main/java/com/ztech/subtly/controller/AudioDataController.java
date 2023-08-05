@@ -44,12 +44,12 @@ public class AudioDataController {
 
     @GetMapping
     public @ResponseBody List<AudioData> getAllAudio() {
+        System.out.println("hit!!!!!!");
         return audioDataRepository.findAll();
     }
 
     @GetMapping(path = "/{audio_id}")
     public @ResponseBody AudioData getAudio(@PathVariable("audio_id") Integer id) {
-        System.out.println("hit!!!!!!");
         return audioDataRepository.findById(id).get();
     }
 

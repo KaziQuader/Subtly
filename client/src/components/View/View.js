@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import AudioCard from "../AudioCard/AudioCard";
 import "./View.css";
 import Stack from "@mui/material/Stack";
@@ -7,17 +7,16 @@ import useFetch from "../../utils/useFetch";
 import { getServerUrl } from "../../utils/CRUD";
 
 const View = () => {
-  let { data, isPending, error } = useFetch(getServerUrl());
-
-
+  const { data: audioList, isPending, error } = useFetch(getServerUrl());
   return (
     <Container fixed>
-      {data && data.length > 0 && <Stack className="stack" spacing={5}>
-        {data.map((audio) => <AudioCard transcription={audio.transcript} audioFileUrl={audio.fileUri} />
+      {audioList && audioList.length > 0 && <Stack className="stack" spacing={5}>
+        {audioList.map((audio) => <AudioCard transcription={audio.transcript} audioFileUrl={audio.fileUri} />
         )}
       </Stack>}
       {isPending && <div> Loading </div>}
-      {(error || data.length === 0) && <div> Sorry no data available, check your internet connection.</div>}
+      {(audioList && audioList.length === 0) && <div>DB not populated</div>}
+      {error && <div> Sorry no data available, check your internet connection.</div>}
     </Container>
   );
 };
