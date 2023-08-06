@@ -26,10 +26,10 @@ import com.ztech.subtly.controller.repository.AudioDataRepository;
 @RestController
 @RequestMapping(path = "/api/v1/audio")
 public class AudioDataController {
-    @Autowired
     private AudioDataRepository audioDataRepository;
     private StorageService storageService;
 
+    @Autowired
     public AudioDataController(AudioDataRepository audioDataRepository) {
         this.audioDataRepository = audioDataRepository;
         this.storageService = new StorageService();
@@ -61,7 +61,7 @@ public class AudioDataController {
 
     @PostMapping
     public ResponseEntity<String> addAudioData(@RequestParam("transcript") String transcript,
-            @RequestParam("fileUri") MultipartFile file) {
+            @RequestParam("file") MultipartFile file) {
         System.out.println("hit!!!!!!");
         String uploadFolder = System.getProperty("user.dir") + "/uploads/";
         String fileUri = storageService.save(file, uploadFolder);

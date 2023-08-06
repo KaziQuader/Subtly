@@ -7,7 +7,7 @@ import { getServerUrl, post } from "../../utils/CRUD";
 const Form = () => {
   const [values, setValues] = useState({
     transcript: "",
-    fileUri: ""
+    file: ""
   });
 
   const navigate = useNavigate();
@@ -26,7 +26,7 @@ const Form = () => {
     },
     {
       id: 2,
-      name: "fileUri",
+      name: "file",
       type: "file",
       placeholder: "Upload Your File",
       errorMessage: "File type does not match",
@@ -36,16 +36,16 @@ const Form = () => {
   ];
 
   const onChange = (e) => {
-    if (e.target.name === "fileUri") {
+    if (e.target.name === "file") {
       const reader = new FileReader();
 
       reader.onload = () => {
         if (reader.readyState === 2)
-          setValues({ ...values, fileUri: reader.result });
+          setValues({ ...values, file: reader.result });
 
       };
       reader.readAsDataURL(e.target.files[0]);
-      setValues({ ...values, fileUri: e.target.files[0] })
+      setValues({ ...values, file: e.target.files[0] })
 
     } else {
       setValues({ ...values, transcript: e.target.value });
@@ -57,11 +57,11 @@ const Form = () => {
     // Write the post request to the controller here
     const form = new FormData();
     form.append("transcript", values.transcript);
-    form.append("fileUri", values.fileUri);
+    form.append("file", values.file);
 
-    const { stausCode, responeBody } = await post(getServerUrl(), 'uploads', null, form);
+    const { stausCode, responeBody } = await post(getServerUrl(), null, form);
     if (stausCode !== 200) {
-      alert("Error submitting audio data" + JSON.stringify(responeBody))
+      alert("Error submitting audio data " + JSON.stringify(responeBody))
     }
     else navigate("/")
   };

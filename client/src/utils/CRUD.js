@@ -2,25 +2,20 @@ export const getServerUrl = () => {
     return "http://localhost:8080/api/v1/audio"
 }
 
-export const post = async (url, body, pathVariable, form) => {
-    let response;
-    if (!form) {
-        if (!body) return null;
-        else if (pathVariable) {
-            url = url + "/" + pathVariable;
-        }
-        response = await fetch(url, { method: "POST", body: JSON.stringify(body) });
-    }
-    else
-        response = await fetch(url, { method: "POST", body: form });
-
+export const post = async (url, pathVariable, body) => {
+    if (!body) return null;
+    else if (pathVariable)
+        url = url + "/" + pathVariable;
+    body = body instanceof FormData ? body : JSON.stringify(body)
+    console.log(body)
+    let response = await fetch(url, { method: "POST", body: body });
     const responseBody = await response.json();
     const responseStatus = response.status;
     return { responseBody, responseStatus };
 
 }
 
-export const put = async (url, body, pathVariable) => {
+export const put = async (url, pathVariable, body) => {
     if (!body && !pathVariable) return null;
 
     if (pathVariable)
@@ -35,7 +30,7 @@ export const put = async (url, body, pathVariable) => {
     return { responseBody, responseStatus };
 }
 
-export const get = async (url, body, pathVariable) => {
+export const get = async (url, pathVariable, body) => {
     if (pathVariable)
         url = url + "/" + pathVariable
     if (body)
