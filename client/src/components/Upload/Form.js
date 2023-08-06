@@ -55,7 +55,7 @@ const Form = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     // Write the post request to the controller here
-    const form = new Form();
+    const form = new FormData();
     form.append("transcript", values.transcript);
     form.append("fileUri", values.fileUri);
 
@@ -74,7 +74,7 @@ const Form = () => {
           <FormInput
             key={input.id}
             {...input}
-            value={input.type === "file" ? null : values[input.name]}
+            value={input.type === "file" ? undefined : values[input.name]}
             onChange={onChange}
           />
         ))}
