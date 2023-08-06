@@ -5,65 +5,61 @@ import { useNavigate } from "react-router-dom";
 import { getServerUrl, post } from "../../utils/CRUD";
 
 const Form = () => {
-  const values = {
+  const [values, setValues] = useState({
     transcript: "",
-    audioFile: "",
-  };
+    fileUri: ""
+  });
 
-  const [transcript, setTranscript] = useState("");
-  const [audioFile, setAudioFile] = useState();
   const navigate = useNavigate();
 
   const inputs = [
     {
       id: 1,
-      name: "Transcript",
+      name: "transcript",
       type: "text",
       placeholder: "Write Your Transcript",
       errorMessage:
-        "Transcript should be 3-16 characters and shouldn't include any special character!",
+        "Transcript should be minimum of 3 characters and shouldn't include any special character!",
       label: "Transcript",
-      pattern: "^[A-Za-z0-9]{3,16}$",
+      pattern: "^[A-Za-z0-9][A-Za-z0-9\\s]{2,}$",
       required: true,
     },
     {
       id: 2,
-      name: "Audio File",
+      name: "fileUri",
       type: "file",
       placeholder: "Upload Your File",
-      errorMessage: "File type doesnot match",
+      errorMessage: "File type does not match",
       label: "Audio File",
       required: true,
     },
   ];
 
   const onChange = (e) => {
-    if (e.target.name === "Audio File") {
+    if (e.target.name === "fileUri") {
       const reader = new FileReader();
 
       reader.onload = () => {
-        if (reader.readyState === 2) {
-          setAudioFile(reader.result);
-        }
+        if (reader.readyState === 2)
+          setValues({ ...values, fileUri: reader.result });
+
       };
       reader.readAsDataURL(e.target.files[0]);
+      setValues({ ...values, fileUri: e.target.files[0] })
+
     } else {
-      setTranscript({ [e.target.name]: e.target.value });
+      setValues({ ...values, transcript: e.target.value });
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Data has transcript name and the audio file
-    const data = { transcript, audioFile };
-    console.log(data);
     // Write the post request to the controller here
     const form = new Form();
-    form.append("transcript", transcript);
-    form.append("file", audioFile);
+    form.append("transcript", values.transcript);
+    form.append("fileUri", values.fileUri);
 
-    const { stausCode, responeBody } = await post(getServerUrl, null, null, form);
+    const { stausCode, responeBody } = await post(getServerUrl(), 'uploads', null, form);
     if (stausCode !== 200) {
       alert("Error submitting audio data" + JSON.stringify(responeBody))
     }
@@ -78,7 +74,7 @@ const Form = () => {
           <FormInput
             key={input.id}
             {...input}
-            value={values[input.name]}
+            value={input.type === "file" ? null : values[input.name]}
             onChange={onChange}
           />
         ))}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import AudioCard from "../AudioCard/AudioCard";
 import "./View.css";
 import Stack from "@mui/material/Stack";

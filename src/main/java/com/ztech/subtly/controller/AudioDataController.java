@@ -44,7 +44,6 @@ public class AudioDataController {
 
     @GetMapping
     public @ResponseBody List<AudioData> getAllAudio() {
-        System.out.println("hit!!!!!!");
         return audioDataRepository.findAll();
     }
 
@@ -62,7 +61,8 @@ public class AudioDataController {
 
     @PostMapping
     public ResponseEntity<String> addAudioData(@RequestParam("transcript") String transcript,
-            @RequestParam("file") MultipartFile file) {
+            @RequestParam("fileUri") MultipartFile file) {
+        System.out.println("hit!!!!!!");
         String uploadFolder = System.getProperty("user.dir") + "/uploads/";
         String fileUri = storageService.save(file, uploadFolder);
 
