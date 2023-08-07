@@ -37,15 +37,7 @@ const Form = () => {
 
   const onChange = (e) => {
     if (e.target.name === "file") {
-      const reader = new FileReader();
-
-      reader.onload = () => {
-        if (reader.readyState === 2)
-          setValues({ ...values, file: reader.result });
-
-      };
-      reader.readAsDataURL(e.target.files[0]);
-      setValues({ ...values, file: e.target.files[0] })
+      setValues({ ...values, file: e.target.files[0] });
 
     } else {
       setValues({ ...values, transcript: e.target.value });
