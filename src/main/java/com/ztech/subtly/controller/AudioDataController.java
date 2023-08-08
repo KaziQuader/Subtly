@@ -1,5 +1,6 @@
 package com.ztech.subtly.controller;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -60,9 +61,8 @@ public class AudioDataController {
     }
 
     @PostMapping
-    public ResponseEntity<String> addAudioData(@RequestParam("transcript") String transcript,
+    public ResponseEntity<Map<String, Object>> addAudioData(@RequestParam("transcript") String transcript,
             @RequestParam("file") MultipartFile file) {
-        System.out.println("hit!!!!!! ");
         String uploadFolder = System.getProperty("user.dir") + "/uploads/";
         String fileUri = storageService.save(file, uploadFolder);
 
@@ -71,9 +71,9 @@ public class AudioDataController {
             audioData.setTranscript(transcript);
             audioData.setFileUri(file.getOriginalFilename());
             audioDataRepository.save(audioData);
-            return ResponseEntity.ok().body(null);
+            return ResponseEntity.ok().body(new HashMap<String, Object>());
         }
-        return ResponseEntity.badRequest().body(null);
+        return ResponseEntity.badRequest().body(new HashMap<String, Object>());
     }
 
     @PostMapping("/transcript/submit")
@@ -97,10 +97,12 @@ public class AudioDataController {
     }
 
     @PutMapping(path = "/{audio_id}")
-    public void updateAudioTranscript(@PathVariable("audio_id") Integer id,
+    public ResponseEntity<Map<String, Object>> updateAudioTranscript(@PathVariable("audio_id") Integer id,
             @RequestBody TranscriptUpdateRequest transcriptUpdateRequest) {
+        System.out.println("hit!!!!");
         AudioData audioData = audioDataRepository.findById(id).get();
         audioData.setTranscript(transcriptUpdateRequest.transcript());
         audioDataRepository.save(audioData);
+        return ResponseEntity.ok().body(new HashMap<String, Object>());
     }
 }

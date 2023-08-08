@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import "./Edit.css";
 import { getServerUrl, put } from "../../utils/CRUD";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+
 
 const Edit = ({ id }) => {
-  const [edit, setEdit] = useState("");
+  const [transcript, setTranscript] = useState("");
   const [focused, setFocused] = useState(false);
+  const location = useLocation()
   const navigate = useNavigate();
 
   const handleFocus = (e) => {
@@ -15,12 +17,11 @@ const Edit = ({ id }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const newTranscript = { edit };
-    console.log(newTranscript);
+
 
     // Write the put request to the controller here
-    const { statusCode, responseBody } = await put(getServerUrl(), { transcript: newTranscript }, id, null);
-    if (statusCode !== 200) {
+    const { responseStatus, responseBody } = await put(getServerUrl(), location.state.id, { transcript: transcript });
+    if (responseStatus !== 200) {
       alert(`Sorry, update failed due to an error. Please check your connection. Error info:${JSON.stringify(responseBody)}`);
     }
     else {
@@ -40,8 +41,8 @@ const Edit = ({ id }) => {
             focused={focused.toString()}
             placeholder="Write new Transcript"
             name="edit"
-            value={edit}
-            onChange={(e) => setEdit(e.target.value)}
+            value={transcript}
+            onChange={(e) => setTranscript(e.target.value)}
           />
         </div>
 

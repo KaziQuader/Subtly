@@ -4,11 +4,12 @@ import Slider from "./Slider/Slider";
 // import song from "../../chimes-7035.mp3";
 import ControlPanel from "./Controls/ControlPanel";
 import { useNavigate } from "react-router-dom";
+import { getServerUrl } from "../../utils/CRUD";
 
-const AudioCard = ({ transcript, fileUri }) => {
+const AudioCard = ({ id, transcript, fileUri }) => {
   const navigate = useNavigate();
 
-  const [percentage, setPercentage] = useState();
+  const [percentage, setPercentage] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
@@ -48,7 +49,11 @@ const AudioCard = ({ transcript, fileUri }) => {
   };
 
   const handleSubmit = (e) => {
-    navigate("/edit");
+    navigate("/edit", {
+      state: {
+        id: id
+      }
+    });
   };
 
   return (
@@ -60,7 +65,7 @@ const AudioCard = ({ transcript, fileUri }) => {
         onLoadedData={(e) => {
           setDuration(e.currentTarget.duration.toFixed(2));
         }}
-        src={fileUri}
+        src={getServerUrl() + "/file/" + fileUri}
       ></audio>
       <p>{transcript}</p>
       <ControlPanel

@@ -7,10 +7,11 @@ export const post = async (url, pathVariable, body) => {
     else if (pathVariable)
         url = url + "/" + pathVariable;
     body = body instanceof FormData ? body : JSON.stringify(body)
-    console.log(body)
+
     let response = await fetch(url, { method: "POST", body: body });
     const responseBody = await response.json();
     const responseStatus = response.status;
+    console.log(responseBody, responseStatus)
     return { responseBody, responseStatus };
 
 }
@@ -24,7 +25,11 @@ export const put = async (url, pathVariable, body) => {
         body = JSON.stringify(body);
     else body = null;
 
-    const response = await fetch(url, { method: "PUT", body: body });
+    const response = await fetch(url, {
+        method: "PUT", body: body, headers: {
+            'Content-Type': 'application/json'
+        }
+    });
     const responseBody = await response.json();
     const responseStatus = response.status;
     return { responseBody, responseStatus };

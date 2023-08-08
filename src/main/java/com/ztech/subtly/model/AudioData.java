@@ -13,7 +13,7 @@ public class AudioData {
     @SequenceGenerator(name = "audio_id_sequence", sequenceName = "audio_id_sequence", initialValue = 0, allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
 
-    private Integer id;
+    private Long id;
     private String fileUri;
     private String transcript;
 
@@ -39,5 +39,13 @@ public class AudioData {
 
     public String getFileUri() {
         return this.fileUri;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 }

@@ -51,11 +51,14 @@ const Form = () => {
     form.append("transcript", values.transcript);
     form.append("file", values.file);
 
-    const { stausCode, responeBody } = await post(getServerUrl(), null, form);
-    if (stausCode !== 200) {
-      alert("Error submitting audio data " + JSON.stringify(responeBody))
+    const { responseStatus, responseBody } = await post(getServerUrl(), null, form);
+    if (responseStatus !== 200) {
+      alert("Error submitting audio data", responseBody)
     }
-    else navigate("/")
+    else {
+      console.log("hit!!!")
+      navigate("/")
+    }
   };
 
   return (
