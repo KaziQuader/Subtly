@@ -25,20 +25,31 @@ public class StorageService {
     public String save(MultipartFile file, String path) {
         try {
             if (!new File(path).exists()) {
-                new File(path).mkdir();
+                new File(path).mkdirs();
             }
 
             log.info("path = {}", path);
-
-            String filePath = path + file.getOriginalFilename();
-            File dest = new File(filePath);
-            file.transferTo(dest);
-            return filePath;
+            Path filePath = Paths.get(path, file.getOriginalFilename());
+            Files.write(filePath, file.getBytes());
+            return filePath.toString();
 
         } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public void saveAs(MultipartFile file, String path, String fileName) {
+        try {
+            if (!new File(path).exists()) {
+                System.out.println("Path does not exist, creating...");
+                new File(path).mkdirs();
+            }
+            Files.write(Paths.get(path, fileName), file.getBytes());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public ResponseEntity<StreamingResponseBody> serveMediaFile(String path, String rangeHeader) {

@@ -2,6 +2,7 @@ package com.ztech.subtly.utils;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,16 +23,22 @@ public class TranscriptionService {
     public TranscriptionService(
             MultipartFile file) {
         this.taskId = UUID.randomUUID().toString();
-        this.processingFolder = System.getProperty("user.dir") + "/processing/" + taskId;
+        this.processingFolder = System.getProperty("user.dir") + "/processing/" + taskId + "/";
         this.fileName = file.getOriginalFilename();
         StorageService storageService = new StorageService();
-        storageService.save(file, processingFolder);
-
+        String contentType = file.getContentType();
+        if (contentType != null) {
+            if (contentType.contains("audio"))
+                storageService.saveAs(file, processingFolder, "input.wav");
+            else
+                storageService.save(file, processingFolder);
+        } else
+            throw new NullPointerException("Null file given!");
     }
 
     public TranscriptionService(String taskId) {
         this.taskId = taskId;
-        this.processingFolder = System.getProperty("user.dir") + "/processing/" + taskId;
+        this.processingFolder = System.getProperty("user.dir") + "/processing/" + taskId + "/";
     }
 
     public ResponseEntity<Map<String, Object>> generateTranscript(String mimeType) {
@@ -105,7 +112,6 @@ public class TranscriptionService {
         ResponseEntity<Map<String, Object>> responseEntity;
         if (srtFile.exists()) {
             response.put("state", "complete");
-            response.put("fileUri", srtFile);
             responseEntity = new ResponseEntity<Map<String, Object>>(response, null, HttpStatus.OK);
 
         } else if (transcribeLog.exists()) {
@@ -128,11 +134,14 @@ public class TranscriptionService {
 
     private double getExtractionProgress() {
         try {
-            String command[] = new String[] { "cat", "extract.log" };
-            ProcessBuilder pb = new ProcessBuilder(command);
-            pb.directory(new File(processingFolder));
-            InputStreamReader inputStreamReader = new InputStreamReader(pb.start().getInputStream());
-            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+            // String command[] = new String[] { "cat", "extract.log" };
+            // ProcessBuilder pb = new ProcessBuilder(command);
+            // pb.directory(new File(processingFolder));
+            // InputStreamReader inputStreamReader = new
+            // InputStreamReader(pb.start().getInputStream());
+
+            FileReader fileReader = new FileReader(new File(processingFolder, "extract.log"));
+            BufferedReader bufferedReader = new BufferedReader(fileReader);
             String line = "";
             Pattern pattern = Pattern
                     .compile(
@@ -174,11 +183,15 @@ public class TranscriptionService {
 
     private double getTranscriptionProgress() {
         try {
-            String command[] = new String[] { "cat", "transcribe.log" };
-            ProcessBuilder pb = new ProcessBuilder(command);
-            pb.directory(new File(processingFolder));
-            InputStreamReader inputStreamReader = new InputStreamReader(pb.start().getInputStream());
-            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+            // String command[] = new String[] { "cat", "transcribe.log" };
+            // ProcessBuilder pb = new ProcessBuilder(command);
+            // pb.directory(new File(processingFolder));
+            // InputStreamReader inputStreamReader = new
+            // InputStreamReader(pb.start().getInputStream());
+
+            FileReader fileReader = new FileReader(new File(processingFolder, "transcribe.log"));
+            BufferedReader bufferedReader = new BufferedReader(fileReader);
+
             String line = "";
             Pattern pattern = Pattern
                     .compile(

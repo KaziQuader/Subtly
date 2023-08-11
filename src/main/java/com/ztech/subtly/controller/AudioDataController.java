@@ -1,5 +1,6 @@
 package com.ztech.subtly.controller;
 
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -78,6 +79,7 @@ public class AudioDataController {
 
     @PostMapping("/transcript/submit")
     public ResponseEntity<Map<String, Object>> submitFileForTranscription(@RequestParam("file") MultipartFile file) {
+
         return new TranscriptionService(file)
                 .generateTranscript(file.getContentType());
     }
@@ -88,18 +90,17 @@ public class AudioDataController {
         return transcriptionService.getStatus();
     }
 
-    @GetMapping(path = "/transcript/file")
+    @GetMapping(path = "/transcript/{taskId}/download")
     public @ResponseBody ResponseEntity<StreamingResponseBody> downloadTranscription(
-            @RequestParam("fileUri") String fileUri,
+            @PathVariable("taskId") String taskId,
             @RequestHeader(value = "Range", required = false) String rangeHeader) {
-        String path = System.getProperty("user.dir") + fileUri;
+        String path = Paths.get(System.getProperty("user.dir"), "processing", taskId, "input.srt").toString();
         return storageService.serveMediaFile(path, rangeHeader);
     }
 
     @PutMapping(path = "/{audio_id}")
     public ResponseEntity<Map<String, Object>> updateAudioTranscript(@PathVariable("audio_id") Integer id,
             @RequestBody TranscriptUpdateRequest transcriptUpdateRequest) {
-        System.out.println("hit!!!!");
         AudioData audioData = audioDataRepository.findById(id).get();
         audioData.setTranscript(transcriptUpdateRequest.transcript());
         audioDataRepository.save(audioData);
