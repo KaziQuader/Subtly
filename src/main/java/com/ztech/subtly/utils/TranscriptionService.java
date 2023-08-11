@@ -23,7 +23,7 @@ public class TranscriptionService {
     public TranscriptionService(
             MultipartFile file) {
         this.taskId = UUID.randomUUID().toString();
-        this.processingFolder = System.getProperty("user.dir") + "/processing/" + taskId + "/";
+        this.processingFolder = System.getProperty("user.dir") + "/processing/" + taskId;
         this.fileName = file.getOriginalFilename();
         StorageService storageService = new StorageService();
         String contentType = file.getContentType();
@@ -38,7 +38,7 @@ public class TranscriptionService {
 
     public TranscriptionService(String taskId) {
         this.taskId = taskId;
-        this.processingFolder = System.getProperty("user.dir") + "/processing/" + taskId + "/";
+        this.processingFolder = System.getProperty("user.dir") + "/processing/" + taskId;
     }
 
     public ResponseEntity<Map<String, Object>> generateTranscript(String mimeType) {
@@ -78,8 +78,8 @@ public class TranscriptionService {
         try {
             ProcessBuilder pb = new ProcessBuilder(command);
             pb.directory(new File(processingFolder));
-            pb.redirectError(new File(processingFolder + "/extract.log"));
-            pb.redirectOutput(new File(processingFolder + "/extract.log"));
+            pb.redirectError(new File(processingFolder, "extract.log"));
+            pb.redirectOutput(new File(processingFolder, "extract.log"));
             return pb.start();
 
         } catch (Exception e) {
@@ -95,8 +95,8 @@ public class TranscriptionService {
         try {
             ProcessBuilder pb = new ProcessBuilder(command);
             pb.directory(new File(processingFolder));
-            pb.redirectError(new File(processingFolder + "/transcribe.log"));
-            pb.redirectOutput(new File(processingFolder + "/transcribe.log"));
+            pb.redirectError(new File(processingFolder, "transcribe.log"));
+            pb.redirectOutput(new File(processingFolder, "transcribe.log"));
             return pb.start();
         } catch (Exception e) {
             e.printStackTrace();
@@ -105,13 +105,14 @@ public class TranscriptionService {
     }
 
     public ResponseEntity<Map<String, Object>> getStatus() {
-        File extractLog = new File(processingFolder + "/extract.log");
-        File transcribeLog = new File(processingFolder + "/transcribe.log");
-        File srtFile = new File(processingFolder + "/input.srt");
+        File extractLog = new File(processingFolder, "extract.log");
+        File transcribeLog = new File(processingFolder, "transcribe.log");
+        File srtFile = new File(processingFolder, "input.srt");
         Map<String, Object> response = new HashMap<String, Object>();
         ResponseEntity<Map<String, Object>> responseEntity;
         if (srtFile.exists()) {
             response.put("state", "complete");
+            response.put("progress", 100.0);
             responseEntity = new ResponseEntity<Map<String, Object>>(response, null, HttpStatus.OK);
 
         } else if (transcribeLog.exists()) {

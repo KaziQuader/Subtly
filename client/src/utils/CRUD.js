@@ -11,9 +11,7 @@ export const post = async (url, pathVariable, body) => {
     let response = await fetch(url, { method: "POST", body: body });
     const responseBody = await response.json();
     const responseStatus = response.status;
-    console.log(responseBody, responseStatus)
     return { responseBody, responseStatus };
-
 }
 
 export const put = async (url, pathVariable, body) => {

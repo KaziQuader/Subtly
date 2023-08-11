@@ -90,7 +90,7 @@ public class AudioDataController {
         return transcriptionService.getStatus();
     }
 
-    @GetMapping(path = "/transcript/{taskId}/download")
+    @GetMapping(path = "/transcript/{taskId}/input.srt")
     public @ResponseBody ResponseEntity<StreamingResponseBody> downloadTranscription(
             @PathVariable("taskId") String taskId,
             @RequestHeader(value = "Range", required = false) String rangeHeader) {

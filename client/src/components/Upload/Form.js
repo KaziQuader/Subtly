@@ -52,13 +52,11 @@ const Form = () => {
     form.append("file", values.file);
 
     const { responseStatus, responseBody } = await post(getServerUrl(), null, form);
-    if (responseStatus !== 200) {
+    if (responseStatus !== 200)
       alert("Error submitting audio data", responseBody)
-    }
-    else {
-      console.log("hit!!!")
+    else
       navigate("/")
-    }
+
   };
 
   return (
