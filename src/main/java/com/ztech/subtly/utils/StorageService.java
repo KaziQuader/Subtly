@@ -1,7 +1,9 @@
 package com.ztech.subtly.utils;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.file.Files;
@@ -23,33 +25,34 @@ public class StorageService {
     }
 
     public String save(MultipartFile file, String path) {
-        try {
-            if (!new File(path).exists()) {
-                new File(path).mkdirs();
-            }
-
-            log.info("path = {}", path);
-            Path filePath = Paths.get(path, file.getOriginalFilename());
-            Files.write(filePath, file.getBytes());
-            return filePath.toString();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
+        return _save(file, path, file.getOriginalFilename());
     }
 
     public void saveAs(MultipartFile file, String path, String fileName) {
+        _save(file, path, fileName);
+    }
+
+    private String _save(MultipartFile file, String path, String fileName) {
         try {
             if (!new File(path).exists()) {
                 System.out.println("Path does not exist, creating...");
                 new File(path).mkdirs();
             }
-            Files.write(Paths.get(path, fileName), file.getBytes());
+            String filePath = Paths.get(path, fileName).toString();
+            byte[] buffer = new byte[1024];
+            BufferedInputStream bufferedInputStream = new BufferedInputStream(file.getInputStream());
+            FileOutputStream fileOutputStream = new FileOutputStream(filePath);
+            int count = 0;
+            while ((count = bufferedInputStream.read(buffer)) != -1) {
+                fileOutputStream.write(buffer, 0, count);
 
+            }
+            fileOutputStream.close();
+            return filePath;
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return null;
     }
 
     public ResponseEntity<StreamingResponseBody> serveMediaFile(String path, String rangeHeader) {

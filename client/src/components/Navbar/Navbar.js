@@ -8,7 +8,7 @@ const Navbar = () => {
       <nav className="nav">
         <div className="navbar-container">
           <a className="logo" href="/">
-            SubtitlePro
+            Subtly
           </a>
           <div className="mobile-icon">
             <FaBars />
