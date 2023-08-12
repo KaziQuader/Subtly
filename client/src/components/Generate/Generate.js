@@ -53,14 +53,16 @@ const Generate = () => {
   };
 
   const onChange = (e) => {
+    console.log(e.target.files[0].type)
     setValues({ ...values, file: e.target.files[0] });
   };
   return (
     <div className="generate-container">
       <form className="generate-form" onSubmit={handleSubmit}>
+        <h1 className="generate-h1">Upload Audio/Video to Generate Subtitle</h1>
+        {(values.file && values.file.type.includes("audio")) && <audio src={URL.createObjectURL(values.file)} controls />}
+        {(values.file && values.file.type.includes("video")) && <video width="640" height="360" src={URL.createObjectURL(values.file)} controls />}
         {state === "Started" && <div>
-
-          <h1 className="generate-h1">Upload Audio/Video to Generate Subtitle</h1>
           {inputs.map((input) => (
             <GenerateInput
               key={input.id}

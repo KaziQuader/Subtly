@@ -63,6 +63,7 @@ const Form = () => {
     <div className="app">
       <form onSubmit={handleSubmit}>
         <h1>Upload Your Audio</h1>
+        {(values.file && values.file.type.includes("audio")) && <audio src={URL.createObjectURL(values.file)} controls />}
         {inputs.map((input) => (
           <FormInput
             key={input.id}
